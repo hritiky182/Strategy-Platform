@@ -28,6 +28,7 @@ import { PlanAmendments } from './modules/governance/PlanAmendments';
 import { AuditTrail } from './modules/governance/AuditTrail';
 import { ExecutiveDashboard } from './modules/executive/ExecutiveDashboard';
 import { ReportBuilder } from './modules/reports/ReportBuilder';
+import { StrategyJourneyWizard } from './modules/journey/StrategyJourneyWizard';
 
 export function App() {
   return (
@@ -39,8 +40,11 @@ export function App() {
 
           {/* Authenticated Application Shell (Guarded by ProtectedRoute) */}
           <Route element={<ProtectedRoute />}>
+            {/* Dedicated Uncluttered Strategy Journey Setup Form with Sidebar */}
+            <Route path="/setup-journey" element={<StrategyJourneyWizard />} />
+
             <Route element={<AppShell />}>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/setup-journey" replace />} />
               <Route path="/dashboard" element={<RoleWorkspace />} />
 
               {/* Administration */}

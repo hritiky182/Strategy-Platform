@@ -394,3 +394,33 @@ export interface AppSettings {
   activePeriod: string;
   activeOrgId: string;
 }
+
+export interface EntityConfig {
+  name: string;
+  nameAr: string;
+  logo: string;
+  primaryColor: string;
+  secondaryColor: string;
+  theme: 'emerald' | 'navy' | 'royal' | 'obsidian';
+  mandate: string;
+  mandateAr: string;
+  sector: string;
+  headquarters: string;
+  currency: string;
+  fiscalYearStart: string;
+  reviewFrequency: 'Quarterly' | 'Monthly' | 'Annual';
+  decimalPrecision: number;
+}
+
+export interface JourneySetupData {
+  entity: EntityConfig;
+  organizationUnits: OrganizationUnit[];
+  users: User[];
+  plan: Plan;
+  themes: StrategicTheme[];
+  objectives: StrategicObjective[];
+  kpis: KPI[];
+  initiatives: Initiative[];
+  results?: PerformanceResult[];
+}
+

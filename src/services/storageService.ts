@@ -44,6 +44,8 @@ import {
   StrategyReviewMeeting,
   User,
   RoleName,
+  EntityConfig,
+  JourneySetupData,
 } from '../types';
 
 export interface AuthSession {
@@ -54,6 +56,23 @@ export interface AuthSession {
   expiresAt: string;
   authMethod: 'persona' | 'nafath' | 'credentials';
 }
+
+export const DEFAULT_ENTITY_CONFIG: EntityConfig = {
+  name: 'Al Ahsa Development Authority (AHDA)',
+  nameAr: 'هيئة تطوير الأحساء',
+  logo: '',
+  primaryColor: '#059669',
+  secondaryColor: '#0f766e',
+  theme: 'emerald',
+  mandate: 'Catalyzing sustainable socio-economic prosperity, preserving Al Ahsa oasis heritage, and delivering world-class civic and investment services.',
+  mandateAr: 'تحفيز الازدهار الاقتصادي والاجتماعي المستدام، والحفاظ على تراث واحة الأحساء، وتقديم خدمات تنموية واستثمارية ومجتمعية عالمية المستوى.',
+  sector: 'Regional Development & Municipal Authority',
+  headquarters: 'Al Ahsa, Eastern Province, KSA',
+  currency: 'SAR',
+  fiscalYearStart: 'January 1',
+  reviewFrequency: 'Quarterly',
+  decimalPrecision: 1,
+};
 
 export const STORAGE_KEYS = {
   AUTH_SESSION: 'ahda_auth_session',
@@ -78,6 +97,8 @@ export const STORAGE_KEYS = {
   AUDIT_LOG: 'ahda_audit_log',
   NOTIFICATIONS: 'ahda_notifications',
   SETTINGS: 'ahda_settings',
+  ENTITY_CONFIG: 'ahda_entity_config',
+  ONBOARDING_COMPLETED: 'ahda_onboarding_completed',
 } as const;
 
 export class StorageService {
@@ -223,6 +244,9 @@ export class StorageService {
   public static setPlans(plans: Plan[]): void {
     this.setItem(STORAGE_KEYS.PLANS, plans);
   }
+  public static setThemes(themes: StrategicTheme[]): void {
+    this.setItem(STORAGE_KEYS.THEMES, themes);
+  }
   public static setObjectives(objectives: StrategicObjective[]): void {
     this.setItem(STORAGE_KEYS.OBJECTIVES, objectives);
   }
@@ -305,6 +329,58 @@ export class StorageService {
     }
   }
 
+  // Entity Configuration helpers
+  public static getEntityConfig(): EntityConfig {
+    return this.getItem(STORAGE_KEYS.ENTITY_CONFIG, DEFAULT_ENTITY_CONFIG);
+  }
+
+  public static setEntityConfig(config: EntityConfig): void {
+    this.setItem(STORAGE_KEYS.ENTITY_CONFIG, config);
+  }
+
+  // Onboarding status
+  public static isOnboardingCompleted(): boolean {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETED) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  public static setOnboardingCompleted(completed: boolean): void {
+    try {
+      localStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETED, String(completed));
+    } catch (e) {
+      console.error('Error saving onboarding completed status:', e);
+    }
+  }
+
+  // Save complete journey setup data to localStorage
+  public static saveCompleteJourney(data: JourneySetupData): void {
+    this.setEntityConfig(data.entity);
+    this.setOrganizations(data.organizationUnits);
+    this.setUsers(data.users);
+    
+    // Ensure the new/updated plan is in the plans array
+    const existingPlans = this.getPlans();
+    const planIndex = existingPlans.findIndex((p) => p.id === data.plan.id || p.code === data.plan.code);
+    if (planIndex >= 0) {
+      existingPlans[planIndex] = data.plan;
+      this.setPlans(existingPlans);
+    } else {
+      this.setPlans([data.plan, ...existingPlans]);
+    }
+
+    this.setThemes(data.themes);
+    this.setObjectives(data.objectives);
+    this.setKpis(data.kpis);
+    this.setInitiatives(data.initiatives);
+    if (data.results && data.results.length > 0) {
+      this.setResults(data.results);
+    }
+    this.setOnboardingCompleted(true);
+  }
+
   // Audit Log helper
   public static addAuditLog(entry: Omit<AuditLog, 'id' | 'timestamp'>): void {
     const logs = this.getAuditLogs();
@@ -316,3 +392,4 @@ export class StorageService {
     this.setAuditLogs([newLog, ...logs]);
   }
 }
+

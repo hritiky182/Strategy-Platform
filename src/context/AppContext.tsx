@@ -24,8 +24,10 @@ import {
   User,
   PermissionAction,
   PermissionResource,
+  EntityConfig,
+  JourneySetupData,
 } from '../types';
-import { StorageService, AuthSession } from '../services/storageService';
+import { StorageService, AuthSession, DEFAULT_ENTITY_CONFIG } from '../services/storageService';
 import { can, PermissionCheckResult } from '../services/permissionService';
 import { TRANSLATIONS, Language } from '../data/translations';
 
@@ -44,6 +46,13 @@ interface AppContextType {
     authMethod?: 'persona' | 'nafath' | 'credentials'
   ) => void;
   logout: () => void;
+
+  // Entity Configuration & Onboarding
+  entityConfig: EntityConfig;
+  updateEntityConfig: (config: Partial<EntityConfig>) => void;
+  isOnboardingCompleted: boolean;
+  setIsOnboardingCompleted: (completed: boolean) => void;
+  saveCompleteJourney: (data: JourneySetupData) => void;
 
   // Data state
   users: User[];
@@ -158,7 +167,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
   const [plans, setPlans] = useState<Plan[]>(() => StorageService.getPlans());
   const [perspectives] = useState<Perspective[]>(() => StorageService.getPerspectives());
-  const [themes] = useState<StrategicTheme[]>(() => StorageService.getThemes());
+  const [themes, setThemes] = useState<StrategicTheme[]>(() => StorageService.getThemes());
   const [objectives, setObjectives] = useState<StrategicObjective[]>(() =>
     StorageService.getObjectives()
   );
@@ -187,6 +196,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     StorageService.getNotifications()
   );
   const [settings, setSettings] = useState<AppSettings>(() => StorageService.getSettings());
+
+  // Entity Configuration & Onboarding state
+  const [entityConfig, setEntityConfigState] = useState<EntityConfig>(() =>
+    StorageService.getEntityConfig()
+  );
+  const [isOnboardingCompleted, setIsOnboardingCompletedState] = useState<boolean>(() =>
+    StorageService.isOnboardingCompleted()
+  );
+
+  const updateEntityConfig = (patch: Partial<EntityConfig>) => {
+    setEntityConfigState((prev) => {
+      const updated = { ...prev, ...patch };
+      StorageService.setEntityConfig(updated);
+      return updated;
+    });
+  };
+
+  const setIsOnboardingCompleted = (completed: boolean) => {
+    setIsOnboardingCompletedState(completed);
+    StorageService.setOnboardingCompleted(completed);
+  };
+
+  const saveCompleteJourney = (data: JourneySetupData) => {
+    StorageService.saveCompleteJourney(data);
+    setEntityConfigState(data.entity);
+    setOrganizations(data.organizationUnits);
+    setUsers(data.users);
+    setPlans(StorageService.getPlans());
+    setThemes(data.themes);
+    setObjectives(data.objectives);
+    setKpis(data.kpis);
+    setInitiatives(data.initiatives);
+    if (data.results && data.results.length > 0) {
+      setResults(data.results);
+    }
+    setIsOnboardingCompletedState(true);
+
+    showToast('Platform setup journey successfully applied & synchronized!', 'success');
+  };
+
+  // Sync brand colors with CSS variables
+  useEffect(() => {
+    if (entityConfig.primaryColor) {
+      document.documentElement.style.setProperty('--primary-800', entityConfig.primaryColor);
+      document.documentElement.style.setProperty('--ahda-teal', entityConfig.primaryColor);
+    }
+    if (entityConfig.secondaryColor) {
+      document.documentElement.style.setProperty('--ahda-emerald', entityConfig.secondaryColor);
+    }
+  }, [entityConfig.primaryColor, entityConfig.secondaryColor]);
 
   // Authentication & Session state
   const [session, setSessionState] = useState<AuthSession | null>(() => StorageService.getSession());
@@ -384,6 +443,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuditLogs(StorageService.getAuditLogs());
     setNotifications(StorageService.getNotifications());
     setSettings(StorageService.getSettings());
+    setThemes(StorageService.getThemes());
+    setEntityConfigState(StorageService.getEntityConfig());
+    setIsOnboardingCompletedState(StorageService.isOnboardingCompleted());
     showToast('Demo data successfully reset to initial AHDA baseline', 'success');
   };
 
@@ -736,6 +798,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         notifications,
         settings,
         currentUser,
+        entityConfig,
+        updateEntityConfig,
+        isOnboardingCompleted,
+        setIsOnboardingCompleted,
+        saveCompleteJourney,
         language,
         t,
         setLanguage,

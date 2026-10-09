@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
-  const { t, currentUser, logout } = useApp();
+  const { t, currentUser, logout, language } = useApp();
   const navigate = useNavigate();
   const role = currentUser.role;
 
@@ -49,8 +49,23 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside className="app-sidebar" aria-label="Sidebar Navigation">
-      {/* 1. HOME / WORKSPACE */}
+      {/* 1. SETUP JOURNEY & WORKSPACE */}
       <div className="nav-section-title">{t('nav_home')}</div>
+      <NavLink
+        to="/setup-journey"
+        className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+        style={{
+          backgroundColor: '#ecfdf5',
+          color: '#065f46',
+          fontWeight: 700,
+          border: '1px solid #bbf7d0',
+          marginBottom: '6px',
+        }}
+      >
+        <Sparkles size={16} color="#059669" />
+        <span>{language === 'ar' ? 'رحلة التجهيز (MOM Flow)' : 'Strategy Setup Journey'}</span>
+      </NavLink>
+
       <NavLink
         to="/dashboard"
         className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}

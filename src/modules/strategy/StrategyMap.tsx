@@ -25,6 +25,7 @@ export const StrategyMap: React.FC = () => {
     kpis,
     results,
     settings,
+    entityConfig,
     setSelectedObjective,
     language,
     t,
@@ -33,32 +34,32 @@ export const StrategyMap: React.FC = () => {
   const [viewMode, setViewMode] = useState<'pillars' | 'causal'>('pillars');
 
   // Sorted perspectives
-  const pFinancial = perspectives.find((p) => p.id === 'PER-04');
-  const pStakeholders = perspectives.find((p) => p.id === 'PER-01');
-  const pProcesses = perspectives.find((p) => p.id === 'PER-02');
-  const pCapacity = perspectives.find((p) => p.id === 'PER-03');
+  const pFinancial = perspectives.find((p) => p.id === 'PER-04') || perspectives[3] || perspectives[0];
+  const pStakeholders = perspectives.find((p) => p.id === 'PER-01') || perspectives[0];
+  const pProcesses = perspectives.find((p) => p.id === 'PER-02') || perspectives[1] || perspectives[0];
+  const pCapacity = perspectives.find((p) => p.id === 'PER-03') || perspectives[2] || perspectives[0];
 
   const pillarsList = [
     {
-      perspective: pFinancial || perspectives[3],
+      perspective: pFinancial,
       title: 'FINANCIAL',
       titleAr: 'الاستدامة المالية والموارد',
       icon: <Coins size={22} />,
     },
     {
-      perspective: pStakeholders || perspectives[0],
+      perspective: pStakeholders,
       title: 'CUSTOMER & CITIZEN',
       titleAr: 'المستفيدون والمجتمع',
       icon: <Users size={22} />,
     },
     {
-      perspective: pProcesses || perspectives[1],
+      perspective: pProcesses,
       title: 'INTERNAL PROCESSES',
       titleAr: 'العمليات التشغيلية والخدمات',
       icon: <Cog size={22} />,
     },
     {
-      perspective: pCapacity || perspectives[2],
+      perspective: pCapacity,
       title: 'ORGANIZATIONAL CAPACITY',
       titleAr: 'القدرات والتعلم المؤسسي',
       icon: <TrendingUp size={22} />,
@@ -71,10 +72,12 @@ export const StrategyMap: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0f2b46', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#0f766e' }}>AHDA</span> Corporate Strategy Map & Scorecard
+            <span style={{ color: '#0f766e' }}>{entityConfig?.name ? entityConfig.name.split(' ').map(w => w[0]).join('').slice(0, 4) : 'AHDA'}</span> Corporate Strategy Map & Scorecard
           </h2>
           <p style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-            Interactive Balanced Scorecard cause-and-effect architecture for Al Ahsa Development Authority.
+            {language === 'ar'
+              ? `بنية العلاقات السببية لبطاقة الأداء المتوازن لصالح ${entityConfig?.nameAr || 'هيئة تطوير الأحساء'}.`
+              : `Interactive Balanced Scorecard cause-and-effect architecture for ${entityConfig?.name || 'Al Ahsa Development Authority'}.`}
           </p>
         </div>
 

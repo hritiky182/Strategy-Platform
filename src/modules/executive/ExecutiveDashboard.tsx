@@ -40,6 +40,8 @@ export const ExecutiveDashboard: React.FC = () => {
     actions,
     perspectives,
     settings,
+    plans,
+    entityConfig,
     setSelectedObjective,
     setSelectedKpi,
     setSelectedInitiative,
@@ -49,6 +51,7 @@ export const ExecutiveDashboard: React.FC = () => {
   } = useApp();
 
   const navigate = useNavigate();
+  const activePlan = plans.find((p) => p.id === settings.activePlanId) || plans[0];
 
   // Dynamic Overall Metrics
   const strategyMetrics = calculateOverallStrategyScore(
@@ -98,10 +101,10 @@ export const ExecutiveDashboard: React.FC = () => {
       >
         <div>
           <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0f2b46' }}>
-            {t('executive_dashboard')} • AHDA Executive Cockpit
+            {language === 'ar' ? (entityConfig?.nameAr || 'لوحة القيادة التنفيذية') : (entityConfig?.name || 'Executive Cockpit')} • {t('executive_dashboard')}
           </h2>
           <p style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-            Al Ahsa Strategic Plan 2027–2030 (STR-2027-2030 v1) • Reporting Period:{' '}
+            {language === 'ar' ? (activePlan?.nameAr || activePlan?.name) : activePlan?.name} ({activePlan?.code}) • Reporting Period:{' '}
             <strong>{settings.activePeriod}</strong>
           </p>
         </div>

@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { jsPDF } from 'jspdf';
 import { calculateOverallStrategyScore, calculateObjectiveScore } from '../../services/calculationService';
 import { RagBadge, StatusBadge } from '../../components/common/Badge';
-import { FileText, Download, Printer, ShieldCheck, Lock, CheckCircle2, Filter } from 'lucide-react';
+import { FileText, Download, Printer, ShieldCheck, Lock, CheckCircle2, Filter, FileSpreadsheet } from 'lucide-react';
 
 export const ReportBuilder: React.FC = () => {
   const {
@@ -16,6 +16,7 @@ export const ReportBuilder: React.FC = () => {
     reviews,
     reports,
     settings,
+    entityConfig,
     language,
     t,
     showToast,
@@ -25,7 +26,7 @@ export const ReportBuilder: React.FC = () => {
   const [selectedPerspectiveFilter, setSelectedPerspectiveFilter] = useState('ALL');
   const [isExporting, setIsExporting] = useState(false);
 
-  const plan = plans[0];
+  const plan = plans.find((p) => p.id === settings.activePlanId) || plans[0];
   const overallMetrics = calculateOverallStrategyScore(objectives, kpis, results, selectedPeriod);
   const frozenReport = reports.find((r) => r.isFrozen);
 
@@ -46,7 +47,7 @@ export const ReportBuilder: React.FC = () => {
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.text('AL AHSA DEVELOPMENT AUTHORITY (AHDA)', 14, 14);
+      doc.text(entityConfig?.name ? entityConfig.name.toUpperCase() : 'STRATEGY PLATFORM', 14, 14);
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
@@ -163,13 +164,53 @@ export const ReportBuilder: React.FC = () => {
         );
       }
 
-      doc.save(`AHDA_Executive_Report_${selectedPeriod.replace(' ', '_')}.pdf`);
+      doc.save(`${(entityConfig?.name || 'AHDA').replace(/\s+/g, '_')}_Executive_Report_${selectedPeriod.replace(' ', '_')}.pdf`);
       showToast('Client-side PDF report generated and downloaded successfully.', 'success');
     } catch (err) {
       console.error(err);
       showToast('PDF generation failed', 'error');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  // Generate Excel / CSV export matching MOM Section 12
+  const handleExportExcel = () => {
+    try {
+      const headers = ['Objective Code', 'Objective Name', 'Weight %', 'KPI Code', 'KPI Name', 'Target', 'Actual', 'Unit', 'Achievement %', 'Status'];
+      const rows: string[][] = [];
+
+      objectives.forEach((obj) => {
+        const calc = calculateObjectiveScore(obj, kpis, results, selectedPeriod);
+        calc.kpiBreakdown.forEach((kb) => {
+          rows.push([
+            `"${obj.code}"`,
+            `"${obj.name.replace(/"/g, '""')}"`,
+            `"${obj.weight}%"`,
+            `"${kb.kpiCode}"`,
+            `"${kb.kpiName.replace(/"/g, '""')}"`,
+            `"${kb.target}"`,
+            `"${kb.actual !== null ? kb.actual : 'Pending'}"`,
+            `"${kb.unit}"`,
+            `"${kb.achievement ? kb.achievement.toFixed(1) + '%' : 'N/A'}"`,
+            `"${kb.ragStatus}"`,
+          ]);
+        });
+      });
+
+      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `${(entityConfig?.name || 'Strategy').replace(/\s+/g, '_')}_Performance_${selectedPeriod.replace(/\s+/g, '_')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast('Performance data successfully exported to Excel / CSV format.', 'success');
+    } catch (e) {
+      console.error(e);
+      showToast('Excel export failed', 'error');
     }
   };
 
@@ -181,7 +222,7 @@ export const ReportBuilder: React.FC = () => {
             {t('reports')} (Executive Briefing & Snapshot Archive)
           </h2>
           <p style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-            Audited performance reports, immutable historical archives, and export to PDF / CSV.
+            Audited performance reports, immutable historical archives, and export to PDF / Excel.
           </p>
         </div>
 
@@ -189,6 +230,10 @@ export const ReportBuilder: React.FC = () => {
           <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>
             <Printer size={14} />
             <span>Print View</span>
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={handleExportExcel} style={{ backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' }}>
+            <FileSpreadsheet size={14} color="#059669" />
+            <span>Export Excel / CSV</span>
           </button>
           <button className="btn btn-primary btn-sm" onClick={handleExportPDF} disabled={isExporting}>
             <Download size={14} />

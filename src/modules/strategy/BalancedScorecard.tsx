@@ -46,6 +46,7 @@ export const BalancedScorecard: React.FC = () => {
     setSelectedObjective,
     setSelectedKpi,
     checkPermission,
+    entityConfig,
     language,
     t,
   } = useApp();
@@ -111,11 +112,11 @@ export const BalancedScorecard: React.FC = () => {
       name: '',
       nameAr: '',
       perspectiveId: pId,
-      themeId: themes[0].id,
-      departmentId: organizations[2].id,
+      themeId: themes[0]?.id || 'TH-01',
+      departmentId: organizations[2]?.id || organizations[0]?.id || 'ORG-01',
       contributingDepartmentIds: [],
-      ownerId: users[3].id,
-      ownerName: users[3].name,
+      ownerId: users[3]?.id || users[0]?.id || 'USR-01',
+      ownerName: users[3]?.name || users[0]?.name || 'Admin',
       weight: 20,
       description: '',
       descriptionAr: '',
@@ -142,7 +143,7 @@ export const BalancedScorecard: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f2b46', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#0f766e' }}>AHDA Corporate Performance Summary</span>
+            <span style={{ color: '#0f766e' }}>{entityConfig?.name || 'AHDA'} Corporate Performance Summary</span>
           </h2>
           <p style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
             Balanced Scorecard lifecycle • Performance achievement trends, related strategic objectives, and active KPIs.

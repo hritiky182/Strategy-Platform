@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ShieldCheck,
   ExternalLink,
+  Sparkles,
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 
@@ -21,6 +22,7 @@ export const TopHeader: React.FC = () => {
   const {
     settings,
     currentUser,
+    entityConfig,
     setRole,
     setPeriod,
     setPlan,
@@ -129,11 +131,11 @@ export const TopHeader: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '0.8px', color: '#ffffff' }}>
-                  AHDA
+                  {entityConfig?.name ? entityConfig.name.split(' ').map(w => w[0]).join('').slice(0, 4) : 'AHDA'}
                 </span>
                 <span style={{ color: '#059669', fontSize: '13px', fontWeight: 800 }}>•</span>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#e2e8f0' }}>
-                  {language === 'ar' ? 'هيئة تطوير الأحساء' : 'Al Ahsa Development Authority'}
+                  {language === 'ar' ? (entityConfig?.nameAr || 'هيئة تطوير الأحساء') : (entityConfig?.name || 'Al Ahsa Development Authority')}
                 </span>
               </div>
               <span style={{ fontSize: '10.5px', color: '#94a3b8', letterSpacing: '0.4px', marginTop: '2px' }}>
@@ -326,6 +328,30 @@ export const TopHeader: React.FC = () => {
               ))}
             </select>
           </div>
+
+          {/* Strategy Journey Wizard Launcher */}
+          <button
+            className="btn btn-sm"
+            style={{
+              backgroundColor: '#059669',
+              color: '#ffffff',
+              fontSize: '11px',
+              fontWeight: 800,
+              padding: '5px 12px',
+              borderRadius: '6px',
+              border: '1px solid rgba(255,255,255,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(5, 150, 105, 0.35)',
+            }}
+            onClick={() => navigate('/setup-journey')}
+            title="Open Step-by-Step Entity & Strategy Setup Wizard"
+          >
+            <Sparkles size={13} color="#ffffff" />
+            <span>{language === 'ar' ? 'رحلة التجهيز' : 'Strategy Journey'}</span>
+          </button>
 
           {/* Demo Guide Launcher */}
           <button
